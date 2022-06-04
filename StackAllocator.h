@@ -87,7 +87,7 @@ void StackAllocator<aligment>::free(void* ptrToFree)
 	}
 	else
 	{
-		assert(false, "Deallocation is done not in LIFO fashion");
+		assert(false && "Deallocation is done not in LIFO fashion");
 	}
 }
 
