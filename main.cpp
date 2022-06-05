@@ -2,33 +2,66 @@
 #include "Utils.h"
 #include "StackAllocator.h"
 #include "FreeListFixedSize.h"
+#include "Segregator.h"
 
 void stackTester();
 void freeListTester();
+void segregatorTester();
 
 int main()
 {
 	stackTester();
 	freeListTester();
+	segregatorTester();
 }
 
-struct EightByteStruct
+void segregatorTester()
 {
-	int a;
-	int b;
-};
+	static constexpr size_t initialSize = 8;
+	static constexpr size_t step = 4;
+	static constexpr size_t numberOfSteps = 4;
+	static constexpr size_t numberOfChunksPerList = 20;	
 
-std::ostream& operator<<(std::ostream& os, const EightByteStruct& eightByteStruct)
-{
-	return os << eightByteStruct.a << ' ' << eightByteStruct.b;
+	//segregator will contain 4 lists of chunk sizes 8, 12, 16, 20, every list has 20 chunks
+	Segregator<initialSize, step, numberOfSteps> segregator{ numberOfChunksPerList };
+	struct EightByteStruct
+	{
+		int a;
+		int b;
+	};
+	struct TwelveByteStruct
+	{
+		int a;
+		int b;
+	};
+
+	EightByteStruct** container = new EightByteStruct*[numberOfChunksPerList];
+	for (int i = 0; i < numberOfChunksPerList; ++i)
+	{
+		void* freeBlock = segregator.allocate(sizeof(EightByteStruct));
+		container[i] = new(freeBlock) EightByteStruct{ i, i + 1 };
+	}
+
+	void* testInapropriateSize = segregator.allocate(sizeof(int));
+	assert(testInapropriateSize == nullptr);
+
+	delete[] container;
+
 }
+
 
 void freeListTester()
 {
+	struct EightByteStruct
+	{
+		int a;
+		int b;
+	};
+
 	static constexpr size_t aligment = 8;
 	static constexpr size_t chunkSize = 8;
 	static constexpr size_t numberOfChunks = 20;
-	FreeListFixedSize<chunkSize> freeList{ numberOfChunks };
+	FreeListFixedSize freeList{ chunkSize, numberOfChunks };
 
 	assert(sizeof(EightByteStruct) == chunkSize);
 
@@ -42,7 +75,7 @@ void freeListTester()
 	}
 	for (int i = 0; i < numberOfChunks; ++i)
 	{
-		std::cout << *container[i] << '\n';
+		//std::cout << container[i]->a << ' ' << container[i]->b << '\n';
 	}
 	delete[] container;
 }

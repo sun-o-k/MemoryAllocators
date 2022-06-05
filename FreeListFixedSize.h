@@ -6,12 +6,15 @@ struct FLNode
 };
 
 
-template <size_t chunkSize>
-class FreeListFixedSize final
+class FreeListFixedSize
 {
 public:
-	FreeListFixedSize(size_t numOfElements)
+	FreeListFixedSize(size_t chunkSize, size_t numOfElements)
 		:_bufferSize(numOfElements* chunkSize), _bufferStart(malloc(numOfElements * chunkSize)), _firstFreeNode(nullptr)
+#ifdef DEBUG
+		, _chunkSize(chunkSize)
+#endif // DEBUG
+ 
 	{
 		assert(numOfElements > 0); // if number of elements is 0 malloced memory leaks
 		union // as it is useful only in context of this function made inner
@@ -60,7 +63,9 @@ public:
 	//as simple as returning next pointer to user, time complexity is O(1)(really fast!)
 	void* allocate(size_t size)//size is added only for interface consistency 
 	{
-		assert(size == chunkSize);
+#ifdef DEBUG
+		assert(size == _chunkSize);
+#endif // DEBUG
 		if (_firstFreeNode == nullptr)
 		{
 			//buffer is exhausted
@@ -94,6 +99,10 @@ private:
 	size_t _bufferSize; //stores only for being able to implement owns function
 	void* _bufferStart;
 	FLNode* _firstFreeNode;
+#ifdef DEBUG
+	size_t _chunkSize;
+#endif // DEBUG
+
 };
 
 
