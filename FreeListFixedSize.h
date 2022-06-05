@@ -35,7 +35,7 @@ public:
 	}
 	~FreeListFixedSize() 
 	{
-		free(_bufferStart); 
+		::free(_bufferStart); 
 	}
 
 	//allocators can not be copied

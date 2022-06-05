@@ -3,16 +3,50 @@
 #include "StackAllocator.h"
 #include "FreeListFixedSize.h"
 #include "Segregator.h"
+#include "StatisticsAllocator.h"
 
 void stackTester();
 void freeListTester();
 void segregatorTester();
+void statisticsTester();
 
 int main()
 {
 	stackTester();
 	freeListTester();
 	segregatorTester();
+	statisticsTester();
+}
+
+void statisticsTester()
+{
+	static constexpr size_t aligment = 8;
+	static constexpr size_t stackSize = 512;
+
+	StackAllocator<aligment> myStackAllocator(stackSize);
+
+	StatisticsAllocator<StackAllocator<aligment>> statisticsAllocator{ myStackAllocator };
+
+	const size_t arrayLength = 16;
+	int* array[arrayLength];
+	for (int i = 0; i < arrayLength; ++i)
+	{
+		void* freeMemory = statisticsAllocator.allocate(sizeof(int));
+		array[i] = new(freeMemory) int{ i };
+	}
+	for (int i = arrayLength - 1; i >= 0; --i)
+	{
+		statisticsAllocator.free(array[i]);
+		array[i] = nullptr;
+	}
+	void* freeMemory = statisticsAllocator.allocate(sizeof(int));
+	array[0] = new(freeMemory) int{ 0 };
+	freeMemory = statisticsAllocator.allocate(sizeof(int));
+	array[1] = new(freeMemory) int{ 1 };
+	statisticsAllocator.free(array[1]);
+	statisticsAllocator.free(array[0]);
+
+	statisticsAllocator.printStatistics();
 }
 
 void segregatorTester()
@@ -109,7 +143,7 @@ void stackTester()
 		void* freeMemory = myStackAllocator.allocate(sizeof(int));
 		array[i] = new(freeMemory) int{ i };
 	}
-	for (int i = arrayLength - 1; i > 0; --i)
+	for (int i = arrayLength - 1; i >= 0; --i)
 	{
 		myStackAllocator.free(array[i]);
 		array[i] = nullptr;
