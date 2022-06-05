@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Utils.h"
 #include "StackAllocator.h"
-#include "FreeList.h"
+#include "FreeListFixedSize.h"
 
 void stackTester();
 void freeListTester();
@@ -33,15 +33,18 @@ void freeListTester()
 	assert(sizeof(EightByteStruct) == chunkSize);
 
 	EightByteStruct** container = new EightByteStruct*[numberOfChunks];
+	assert(!freeList.owns(container));
 	for (int i = 0; i < numberOfChunks; ++i)
 	{
 		void* freeBlock = freeList.allocate(sizeof(EightByteStruct));
+		assert(freeList.owns(freeBlock));
 		container[i] = new(freeBlock) EightByteStruct {i, i + 1};
 	}
 	for (int i = 0; i < numberOfChunks; ++i)
 	{
 		std::cout << *container[i] << '\n';
 	}
+	delete[] container;
 }
 
 void stackTester()
