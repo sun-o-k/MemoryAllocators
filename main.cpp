@@ -33,6 +33,7 @@ void segregatorTester()
 	{
 		int a;
 		int b;
+		int c;
 	};
 
 	EightByteStruct** container = new EightByteStruct*[numberOfChunksPerList];
@@ -42,8 +43,23 @@ void segregatorTester()
 		container[i] = new(freeBlock) EightByteStruct{ i, i + 1 };
 	}
 
+	TwelveByteStruct** containerTwelve = new TwelveByteStruct *[numberOfChunksPerList];
+	for (int i = 0; i < numberOfChunksPerList; ++i)
+	{
+		void* freeBlock = segregator.allocate(sizeof(TwelveByteStruct));
+		containerTwelve[i] = new(freeBlock) TwelveByteStruct{ i, i + 1 };
+	}
+
 	void* testInapropriateSize = segregator.allocate(sizeof(int));
 	assert(testInapropriateSize == nullptr);
+	for (int i = 0; i < numberOfChunksPerList; ++i)
+	{
+		segregator.free(container[i]);
+	}
+	for (int i = 0; i < numberOfChunksPerList; ++i)
+	{
+		segregator.free(containerTwelve[i]);
+	}
 
 	delete[] container;
 
